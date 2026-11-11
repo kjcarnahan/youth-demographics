@@ -1,0 +1,28 @@
+{
+  "state_fips": "13",
+  "first_acs_year": 2011,
+  "zctas": {
+    "30041": "30041 Cumming (south/east Forsyth)",
+    "30040": "30040 Cumming (south/west Forsyth)",
+    "30005": "30005 Alpharetta (Forsyth/Fulton line)",
+    "30024": "30024 Suwanee (Forsyth/Gwinnett)",
+    "30097": "30097 Johns Creek / Duluth",
+    "30022": "30022 Johns Creek / Alpharetta"
+  },
+  "places": {
+    "42425": "Johns Creek city"
+  },
+  "counties": {
+    "117": "Forsyth County",
+    "121": "Fulton County"
+  },
+  "first_school_year": 2010,
+  "school_districts": {
+    "1302220": "Forsyth County Schools",
+    "1302280": "Fulton County Schools"
+  },
+  "include_schools": {
+    "130222004314": "Denmark High School (30004)",
+    "130222004228": "DeSana Middle School (30004)"
+  }
+}

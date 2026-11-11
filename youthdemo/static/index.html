@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Youth Demographics</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3f0; --surface-1: #fcfcfb; --border: #e2e0da; --grid: #e9e7e2;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7872;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --good: #1a7f37; --serious: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #111110; --surface-1: #1a1a19; --border: #33322f; --grid: #2a2a28;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --good: #4cc26a; --serious: #f28b82;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.grid2 > * { min-width: 0; }
+h3.ct { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 6px 0 4px; }
+body { margin: 0; background: var(--bg); color: var(--text-primary);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 60px; }
+h1 { font-size: 22px; margin: 0 0 2px; }
+h2 { font-size: 16px; margin: 0 0 2px; }
+.sub, .note { color: var(--text-secondary); font-size: 13px; margin: 0 0 10px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-top: 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.controls label { font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
+select, input, button { font: inherit; color: inherit; background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+button { cursor: pointer; }
+button.primary { background: var(--series-1); border-color: var(--series-1); color: #fff; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 16px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.tile .k { font-size: 13px; color: var(--text-secondary); }
+.tile .v { font-size: 28px; font-weight: 650; margin: 2px 0; }
+.tile .d { font-size: 13px; color: var(--text-secondary); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 0 16px; }
+.chart { position: relative; height: 260px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-secondary); font-weight: 600; }
+.scroll { overflow-x: auto; }
+.pos { color: var(--good); } .neg { color: var(--serious); }
+details { margin-top: 8px; } summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+form.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 10px 0; }
+form.row label { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 3px; }
+form.row input { width: 120px; max-width: 100%; } form.row input[name=note] { width: 220px; }
+select { max-width: 100%; } .controls label { max-width: 100%; }
+#schools { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2px 14px; margin-top: 8px; font-size: 13.5px; }
+#schools h3 { grid-column: 1 / -1; font-size: 13px; margin: 8px 0 2px; color: var(--text-secondary); }
+.empty { padding: 28px 8px; text-align: center; color: var(--text-secondary); }
+code { background: var(--bg); padding: 2px 6px; border-radius: 4px; }
+#err { color: var(--serious); font-size: 13px; }
+ul.notes { margin: 6px 0 0; padding-left: 20px; color: var(--text-secondary); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Youth Demographics</h1>
+  <p class="sub">Teen population of South Forsyth / Johns Creek compared with your youth group. <span id="fetched"></span></p>
+
+  <div class="card controls">
+    <label>Compare against <select id="basis"></select></label>
+    <label id="areaWrap">Census area <select id="area"></select></label>
+    <span id="zips" class="controls"></span>
+  </div>
+
+  <div id="nodata" class="card empty" hidden>
+    No data has been downloaded yet. In a terminal, from the project folder, run
+    <code>python3 -m youthdemo fetch</code> and reload this page.
+  </div>
+
+  <div id="dash" hidden>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card">
+      <h2>Is the youth group really growing?</h2>
+      <p class="sub">"Kept pace" is the size the group would be if it had only held its starting share of local teens (<span id="basisName"></span>). Above the line is real growth; below is losing ground even if the headcount is up.</p>
+      <div class="grid2">
+        <div><h3 class="ct">Youth group size</h3><div class="chart"><canvas id="cPace"></canvas></div></div>
+        <div><h3 class="ct">Youth group per 1,000 local teens</h3><div class="chart"><canvas id="cRate"></canvas></div></div>
+      </div>
+      <form class="row" id="yform">
+        <label>Year <input name="year" type="number" min="1990" max="2100" required></label>
+        <label>Middle school <input name="ms" type="number" min="0" step="any"></label>
+        <label>High school <input name="hs" type="number" min="0" step="any"></label>
+        <label>Note <input name="note" maxlength="300" placeholder="e.g. average weekly attendance"></label>
+        <button class="primary">Save year</button>
+        <span id="err"></span>
+      </form>
+      <div class="scroll"><table id="tYouth"></table></div>
+      <p class="note">Use the same measure every year (roster or average attendance). Saving a year that already exists replaces it.</p>
+    </div>
+
+    <div class="card">
+      <h2>Public school enrollment, grades 6–12</h2>
+      <p class="sub">Actual fall head counts for the schools ticked below (federal Common Core of Data). The year is the fall of the school year. Private-school and homeschooled students are not included.</p>
+      <div class="grid2">
+        <div><div class="chart"><canvas id="cSch"></canvas></div></div>
+        <div class="scroll"><table id="tSch"></table></div>
+      </div>
+      <details><summary>Choose schools (<span id="schCount"></span>)</summary><div id="schools"></div></details>
+    </div>
+
+    <div id="needKey" class="card" hidden>
+      <h2>Census data not downloaded yet</h2>
+      <p class="sub">Resident population by age, race and ethnicity, the 2020 Census pipeline and the community profile need a free Census API key.
+      Get one at api.census.gov/data/key_signup.html, then run <code>export CENSUS_API_KEY=yourkey</code> and <code>python3 -m youthdemo fetch</code>.</p>
+    </div>
+
+    <div id="census">
+    <div class="grid2">
+      <div class="card">
+        <h2>Teen population</h2>
+        <p class="sub">Residents by age band, Census ACS 5-year estimates. Each point is a 5-year average ending in the year shown.</p>
+        <div class="chart"><canvas id="cPop"></canvas></div>
+        <details><summary>Table with margins of error</summary><div class="scroll"><table id="tPop"></table></div></details>
+      </div>
+      <div class="card">
+        <h2>Who is coming up</h2>
+        <p class="sub">Children counted in the 2020 Census, aged forward to each year. Assumes nobody moves in or out, so it understates a growing area.</p>
+        <div class="chart"><canvas id="cPipe"></canvas></div>
+        <p class="note" id="pipeNote"></p>
+      </div>
+      <div class="card">
+        <h2>Ages 10–17 by race and ethnicity</h2>
+        <p class="sub">Hispanic youth can be of any race, so groups overlap slightly and do not add to the total.</p>
+        <div class="chart"><canvas id="cRace"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Boys and girls, ages 10–17</h2>
+        <p class="sub">ACS 5-year estimates.</p>
+        <div class="chart"><canvas id="cSex"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Community profile <span id="profYear" class="sub"></span></h2>
+      <div class="scroll"><table id="tProf"></table></div>
+    </div>
+    </div>
+
+    <div class="card">
+      <h2>Reading these numbers</h2>
+      <ul class="notes">
+        <li>ACS figures are survey estimates averaged over five years. Compare vintages five years apart (2019 vs 2024) for a clean read; adjacent years share four years of data.</li>
+        <li>For ZIP-sized areas the margin of error on a teen age band is often ±10% or more. Small year-to-year wiggles are noise.</li>
+        <li>Census ZIP areas (ZCTAs) follow ZIP boundaries, not county lines: 30024 and 30097 include parts of Gwinnett County.</li>
+        <li>Ages 12–14 and 15–17 stand in for middle and high school. They are close, not exact: many 6th graders are 11 and many seniors are 18.</li>
+        <li>School enrollment is a real annual count and the steadier yardstick. It only counts the public schools you tick, so it moves when schools open or attendance zones are redrawn (Denmark High opened in 2018, East Forsyth in 2021).</li>
+        <li>When a youth-group year is newer than the latest available data, the latest available figure is used and the row is marked.</li>
+      </ul>
+      <div id="warn"></div>
+    </div>
+  </div>
+</main>
+<script src="vendor/chart.umd.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
