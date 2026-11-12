@@ -1,0 +1,422 @@
+<title>Youth Group Yardstick</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: one column of working panels. Your numbers and the verdict first, the yardstick controls second, the evidence behind it last. */
+:root {
+  --bg: #f2f4f8; --surface: #ffffff; --ink: #10151c; --ink-2: #4a5565; --ink-3: #6f7a8b;
+  --line: #dbe1ea; --grid: #e7ebf1; --accent: #2a78d6; --accent-ink: #ffffff; --chip: #e8f0fb;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --good: #1a7f37; --bad: #b3261e; --note: #fff6dc; --note-line: #ecd893;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1318; --surface: #171c23; --ink: #eef1f5; --ink-2: #b9c1cd; --ink-3: #8b95a5;
+  --line: #2b323d; --grid: #242a33; --accent: #3987e5; --accent-ink: #ffffff; --chip: #1c2a3d;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --good: #4cc26a; --bad: #f28b82; --note: #2a2616; --note-line: #5b4f1f; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1318; --surface: #171c23; --ink: #eef1f5; --ink-2: #b9c1cd; --ink-3: #8b95a5;
+  --line: #2b323d; --grid: #242a33; --accent: #3987e5; --accent-ink: #ffffff; --chip: #1c2a3d;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --good: #4cc26a; --bad: #f28b82; --note: #2a2616; --note-line: #5b4f1f; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-block: 24px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font: 600 28px/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 18px/1.25 var(--display); margin: 0; text-wrap: balance; }
+h3 { font: 600 13px/1.3 var(--body); color: var(--ink-2); margin: 0 0 6px; }
+p { margin: 0; }
+.lede { color: var(--ink-2); max-width: 68ch; margin-top: 6px; }
+.sub { color: var(--ink-2); font-size: 13.5px; max-width: 78ch; margin-top: 4px; }
+.small { color: var(--ink-3); font-size: 12.5px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); gap: 18px; }
+.two > * { min-width: 0; }
+.chart { position: relative; height: 250px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { padding: 12px 14px; border-right: 1px solid var(--line); margin-right: -1px; border-bottom: 1px solid var(--line); margin-bottom: -1px; }
+.stat .k { font-size: 12.5px; color: var(--ink-2); }
+.stat .v { font: 600 26px/1.2 var(--display); font-variant-numeric: tabular-nums; }
+.stat .d { font-size: 12.5px; color: var(--ink-2); }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; font-size: 13px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type=number], input[type=text] { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; width: 100%; }
+.entry { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+.entry label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--ink-2); min-width: 0; }
+.entry .wide { grid-column: span 2; }
+@media (max-width: 420px) { .entry .wide { grid-column: auto; } }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 7px 14px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 13.5px; cursor: pointer; user-select: none; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip:has(input:checked) { background: var(--chip); border-color: var(--accent); }
+.chip:has(input:checked)::before { content: "✓"; color: var(--accent); font-weight: 600; }
+.chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip .small { font-size: 11.5px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 9px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12.5px; }
+td.l { text-align: left; white-space: normal; min-width: 120px; }
+.banner { background: var(--note); border: 1px solid var(--note-line); border-radius: 8px; padding: 9px 12px; font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between; }
+.empty { color: var(--ink-2); text-align: center; padding: 18px 8px; }
+.x { padding: 2px 8px; color: var(--ink-2); }
+ul.notes { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: 13.5px; display: flex; flex-direction: column; gap: 5px; max-width: 86ch; }
+details > summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+#err { color: var(--bad); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <h1>Youth Group Yardstick</h1>
+    <p class="lede">Is your youth group growing, or is the neighborhood? Enter your attendance by year and compare it with the number of teens actually living and going to school in South Forsyth and Johns Creek.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-you">
+    <div>
+      <h2 id="h-you">Your youth group</h2>
+      <p class="sub">Enter one line per year, using the same measure each time (roster, or average weekly attendance). The year means the fall of that school year.</p>
+    </div>
+    <div class="banner" id="exampleBanner" hidden>
+      <span>These are example numbers so you can see how the page works. Saving your first year replaces them.</span>
+      <button type="button" id="clearExample">Clear example</button>
+    </div>
+    <form class="entry" id="yform" novalidate>
+      <label>Year <input id="f-year" name="year" type="number" inputmode="numeric" min="1990" max="2100" placeholder="2025"></label>
+      <label>Middle school <input id="f-ms" name="ms" type="number" inputmode="decimal" min="0" step="any"></label>
+      <label>High school <input id="f-hs" name="hs" type="number" inputmode="decimal" min="0" step="any"></label>
+      <label class="wide">Note (optional) <input id="f-note" name="note" type="text" maxlength="120" placeholder="average weekly attendance"></label>
+      <button class="primary" type="submit">Save year</button>
+    </form>
+    <div class="row"><span id="err" role="alert"></span><span class="small" id="saveState"></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="two">
+      <div><h3>Youth group size, against simply keeping pace</h3><div class="chart"><canvas id="cPace"></canvas></div></div>
+      <div><h3 id="rateTitle">Youth group per 1,000 local teens</h3><div class="chart"><canvas id="cRate"></canvas></div></div>
+    </div>
+    <div class="scroll"><table id="tYouth"></table></div>
+    <p class="small"><strong>Kept pace</strong> is the size the group would be had it only held its first-year share of local teens. <strong>From population</strong> is the growth the area handed you. <strong>Real change</strong> is what is left: your gain or loss in share.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-yard">
+    <div>
+      <h2 id="h-yard">Choose the yardstick</h2>
+      <p class="sub">Pick what counts as "local teens", then tick the schools or ZIP codes your families actually come from. Everything on the page updates as you change them.</p>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Compare against">
+        <button type="button" id="b-schools" data-basis="schools" aria-pressed="true">Public school enrollment, grades 6–12</button>
+        <button type="button" id="b-census" data-basis="census" aria-pressed="false">Census residents, ages 12–17</button>
+      </div>
+    </div>
+    <div>
+      <h3>ZIP codes <span class="small" id="zipCount"></span></h3>
+      <div class="chips" id="zips"></div>
+      <p class="small" style="margin-top:6px">ZIP codes drive the Census charts. <button type="button" class="link" id="zipSchools">Tick the schools located in these ZIP codes</button></p>
+    </div>
+    <div>
+      <h3>Schools <span class="small" id="schCount"></span></h3>
+      <div class="row" style="margin-bottom:8px">
+        <button type="button" data-pick="default">Suggested set</button>
+        <button type="button" data-pick="all">All</button>
+        <button type="button" data-pick="none">None</button>
+        <button type="button" data-pick="Middle">Middle schools only</button>
+        <button type="button" data-pick="High">High schools only</button>
+      </div>
+      <div id="schools" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-sch">
+    <div>
+      <h2 id="h-sch">Public school enrollment</h2>
+      <p class="sub">Fall head counts in grades 6–12 at the schools ticked above, from the federal Common Core of Data. Private-school and homeschooled students are not counted.</p>
+    </div>
+    <div class="two">
+      <div class="chart"><canvas id="cSch"></canvas></div>
+      <div class="scroll" style="max-height:250px;overflow-y:auto"><table id="tSch"></table></div>
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="panel"><div><h2>Teen residents</h2><p class="sub">Census survey estimates for the ticked ZIP codes. Each point is a five-year average ending in the year shown.</p></div>
+      <div class="chart"><canvas id="cPop"></canvas></div>
+      <details><summary>Table with margins of error</summary><div class="scroll"><table id="tPop"></table></div></details></section>
+    <section class="panel"><div><h2>Who is coming up</h2><p class="sub">Children counted in the 2020 Census, aged forward a year at a time. It assumes nobody moves in or out, so in an area families keep moving to, the real numbers will run higher.</p></div>
+      <div class="chart"><canvas id="cPipe"></canvas></div></section>
+    <section class="panel"><div><h2>Ages 10–17 by race and ethnicity</h2><p class="sub">Hispanic youth can be of any race, so the groups overlap slightly.</p></div>
+      <div class="chart"><canvas id="cRace"></canvas></div></section>
+    <section class="panel"><div><h2>Boys and girls, ages 10–17</h2><p class="sub">Census survey estimates for the ticked ZIP codes.</p></div>
+      <div class="chart"><canvas id="cSex"></canvas></div></section>
+  </div>
+
+  <section class="panel">
+    <div><h2>Community profile</h2><p class="sub" id="profSub"></p></div>
+    <div class="scroll"><table id="tProf"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Reading these numbers</h2>
+    <ul class="notes">
+      <li>School enrollment is a real count taken every fall, so it is the steadier yardstick. It moves when schools open or attendance zones are redrawn: Denmark High opened in 2018 and East Forsyth High in 2021.</li>
+      <li>Census figures are survey estimates averaged over five years. Compare points five years apart for a clean read; neighboring years share four years of data.</li>
+      <li>For a single ZIP code the margin of error on a teen age band is often 10% or more. Small wiggles are noise.</li>
+      <li>Census ZIP areas follow ZIP boundaries, not county lines. 30024 and 30097 include parts of Gwinnett County.</li>
+      <li>Ages 12–14 and 15–17 stand in for middle and high school. Many sixth graders are 11 and many seniors are 18.</li>
+      <li>When your year is newer than the latest published data, the latest available figure is used and marked with an asterisk.</li>
+    </ul>
+    <p class="small" id="sources"></p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const D = /*__DATA__*/null;
+const $ = (id) => document.getElementById(id);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (n, d = 0) => n == null || isNaN(n) ? "–" : Number(n).toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+const signed = (n, d = 0) => n == null || isNaN(n) ? "–" : (Math.round(n * 10 ** d) > 0 ? "+" : Math.round(n * 10 ** d) < 0 ? "−" : "") + fmt(Math.abs(n), d);
+const cls = (n) => n == null || Math.abs(n) < 0.5 ? "" : n > 0 ? "pos" : "neg";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const EXAMPLE = [
+  { year: 2018, ms: 38, hs: 52, note: "example" }, { year: 2020, ms: 41, hs: 55, note: "example" },
+  { year: 2022, ms: 44, hs: 60, note: "example" }, { year: 2024, ms: 50, hs: 63, note: "example" },
+];
+const ZIPS = D.geos.filter((g) => g.kind === "zcta");
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("ygy." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ygy." + k, JSON.stringify(v)); } catch {} },
+};
+const S = {
+  basis: store.get("basis", "schools"),
+  zips: new Set(store.get("zips", ZIPS.map((g) => g.id)).filter((z) => ZIPS.some((g) => g.id === z))),
+  schools: new Set(store.get("schools", D.schools.filter((s) => s.def).map((s) => s.id)).filter((id) => D.enr[id])),
+  rows: store.get("rows", null),
+};
+let example = !S.rows || !S.rows.length;
+if (example) S.rows = EXAMPLE.slice();
+let cloudDoc = null;
+
+/* ---------- calculations ---------- */
+function schoolSeries() {
+  const by = {};
+  for (const id of S.schools) for (const [y, g] of Object.entries(D.enr[id] || {})) {
+    const t = (by[y] ||= [0, 0]);
+    g.forEach((n, i) => { if (n != null) t[i < 3 ? 0 : 1] += n; });
+  }
+  const years = Object.keys(by).map(Number).sort((a, b) => a - b);
+  return { years, ms: years.map((y) => by[y][0]), hs: years.map((y) => by[y][1]) };
+}
+function acsSeries() {
+  const geos = [...S.zips], yrs = new Set();
+  geos.forEach((g) => Object.keys(D.acs[g] || {}).forEach((y) => yrs.add(+y)));
+  const years = [...yrs].sort((a, b) => a - b), m = {};
+  for (const [k, def] of Object.entries(D.metrics)) {
+    m[k] = years.map((y) => {
+      let est = 0, moe2 = 0, ok = geos.length > 0, mok = true;
+      for (const g of geos) for (const v of def.vars) {
+        const c = D.acs[g]?.[y]?.[v];
+        if (!c || c[0] == null) ok = false; else est += c[0];
+        if (!c || c[1] == null) mok = false; else moe2 += c[1] * c[1];
+      }
+      return ok ? { est, moe: mok ? Math.round(Math.sqrt(moe2)) : null } : null;
+    });
+  }
+  return { years, m };
+}
+function pipeline() {
+  const geos = [...S.zips];
+  if (!geos.length || geos.some((g) => !D.ages[g])) return null;
+  const ages = Array.from({ length: 18 }, (_, a) => geos.reduce((t, g) => t + (D.ages[g][a] || 0), 0));
+  const out = [];
+  for (let k = 0; k <= 12; k++) out.push({ year: 2020 + k, ms: ages[12 - k] + ages[13 - k] + ages[14 - k], hs: ages[15 - k] + ages[16 - k] + ages[17 - k] });
+  return out;
+}
+function compare(pop) {
+  const py = Object.keys(pop).map(Number).sort((a, b) => a - b);
+  let base = null;
+  return S.rows.slice().sort((a, b) => a.year - b.year).map((r) => {
+    const total = (r.ms ?? 0) + (r.hs ?? 0), o = { ...r, total };
+    if (!py.length) return o;
+    const earlier = py.filter((y) => y <= r.year), y = earlier.length ? earlier.at(-1) : py[0];
+    const [pms, phs] = pop[y], pt = pms + phs;
+    Object.assign(o, { popYear: y, pop: pt, rate: pt ? 1000 * total / pt : null });
+    if (pt) {
+      if (!base) { base = [total, pt]; Object.assign(o, { expected: total, demo: 0, real: 0 }); }
+      else { const e = base[0] * pt / base[1]; Object.assign(o, { expected: e, demo: e - base[0], real: total - e }); }
+    }
+    return o;
+  });
+}
+
+/* ---------- charts ---------- */
+const charts = {};
+function line(id, labels, sets, digits = 0) {
+  charts[id]?.destroy();
+  const colors = ["--s1", "--s2", "--s3", "--s4"].map(css), text = css("--ink-2"), grid = css("--grid"), surface = css("--surface");
+  charts[id] = new Chart($(id), {
+    type: "line",
+    data: { labels, datasets: sets.map((s, i) => ({ label: s.label, data: s.data, borderColor: colors[i], backgroundColor: colors[i], borderWidth: 2,
+      pointRadius: 3, pointHoverRadius: 6, pointBorderColor: surface, pointBorderWidth: 2, tension: 0, spanGaps: true, borderDash: s.dash ? [6, 4] : [] })) },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { display: sets.length > 1, position: "bottom", labels: { color: text, usePointStyle: true, boxHeight: 7, font: { family: "Inter" } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.parsed.y, digits)}` } } },
+      scales: { x: { ticks: { color: text, maxRotation: 0, autoSkipPadding: 14 }, grid: { display: false }, border: { color: grid } },
+        y: { beginAtZero: true, ticks: { color: text, maxTicksLimit: 6 }, grid: { color: grid }, border: { display: false } } } },
+  });
+}
+
+/* ---------- render ---------- */
+const stat = (k, v, d) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d || "&nbsp;"}</div></div>`;
+function render() {
+  const sch = schoolSeries(), acs = acsSeries(), bySchool = S.basis === "schools";
+  const pop = {};
+  if (bySchool) sch.years.forEach((y, i) => { if (sch.ms[i] + sch.hs[i] > 0) pop[y] = [sch.ms[i], sch.hs[i]]; });
+  else acs.years.forEach((y, i) => { const a = acs.m.age_12_14[i], b = acs.m.age_15_17[i]; if (a && b) pop[y] = [a.est, b.est]; });
+  const rows = compare(pop), word = bySchool ? "students" : "teens";
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.basis === S.basis)));
+  $("exampleBanner").hidden = !example;
+  $("rateTitle").textContent = `Youth group per 1,000 local ${word}`;
+  $("zipCount").textContent = `${S.zips.size} of ${ZIPS.length} ticked`;
+  $("schCount").textContent = `${S.schools.size} of ${D.schools.length} ticked`;
+
+  // headline stats
+  const last = rows.at(-1), first = rows.find((r) => r.expected != null), py = Object.keys(pop).map(Number).sort((a, b) => a - b);
+  let h = "";
+  if (last) h += stat(`Youth group, ${last.year}`, fmt(last.total), last.rate != null ? `${fmt(last.rate, 1)} per 1,000 local ${word}` : "");
+  else h += stat("Youth group", "–", "Add a year above");
+  if (last && first && last !== first && last.real != null) {
+    h += stat(`Real change since ${first.year}`, `<span class="${cls(last.real)}">${signed(last.real)}</span>`, last.real >= 0.5 ? "Growing faster than the area" : last.real <= -0.5 ? "Growing slower than the area" : "Keeping pace with the area");
+    h += stat("Change from population alone", signed(last.demo), `Kept pace would be ${fmt(last.expected)}`);
+  }
+  if (py.length) {
+    const a = pop[py[0]], b = pop[py.at(-1)], ta = a[0] + a[1], tb = b[0] + b[1];
+    h += stat(bySchool ? `Students, grades 6–12, fall ${py.at(-1)}` : `Residents 12–17, ${py.at(-1) - 4}–${py.at(-1)}`, fmt(tb), py.length > 1 ? `${signed(100 * (tb / ta - 1))}% since ${py[0]}` : "");
+  } else h += stat(bySchool ? "Students, grades 6–12" : "Residents 12–17", "–", bySchool ? "Tick at least one school" : "Tick at least one ZIP code");
+  $("stats").innerHTML = h;
+
+  line("cPace", rows.map((r) => r.year), [{ label: "Youth group", data: rows.map((r) => r.total) }, { label: "Kept pace with local " + word, data: rows.map((r) => r.expected ?? null), dash: true }]);
+  line("cRate", rows.map((r) => r.year), [{ label: "Per 1,000 local " + word, data: rows.map((r) => r.rate ?? null) }], 1);
+
+  let t = `<tr><th>Year</th><th>Middle</th><th>High</th><th>Total</th><th>${bySchool ? "Students 6–12" : "Residents 12–17"}</th><th>Per 1,000</th><th>Kept pace</th><th>From population</th><th>Real change</th><th>Note</th><th></th></tr>`;
+  for (const r of rows) {
+    const star = r.popYear != null && r.popYear !== r.year;
+    t += `<tr><td>${r.year}</td><td>${fmt(r.ms)}</td><td>${fmt(r.hs)}</td><td>${fmt(r.total)}</td><td>${fmt(r.pop)}${star ? ` <span title="Figure from ${r.popYear}">*</span>` : ""}</td><td>${fmt(r.rate, 1)}</td><td>${fmt(r.expected)}</td><td>${signed(r.demo)}</td><td class="${cls(r.real)}">${signed(r.real)}</td><td class="l">${esc(r.note)}</td><td><button type="button" class="x" data-del="${r.year}" aria-label="Delete ${r.year}">✕</button></td></tr>`;
+  }
+  if (!rows.length) t += `<tr><td colspan="11" class="empty">No years yet. Add your first one above.</td></tr>`;
+  $("tYouth").innerHTML = t;
+
+  // schools
+  line("cSch", sch.years, [{ label: "Grades 6–8", data: sch.ms }, { label: "Grades 9–12", data: sch.hs }]);
+  let st = "<tr><th>Fall</th><th>Grades 6–8</th><th>Grades 9–12</th><th>Total</th></tr>";
+  for (let i = sch.years.length - 1; i >= 0; i--) st += `<tr><td>${sch.years[i]}</td><td>${fmt(sch.ms[i])}</td><td>${fmt(sch.hs[i])}</td><td>${fmt(sch.ms[i] + sch.hs[i])}</td></tr>`;
+  if (!sch.years.length) st += `<tr><td colspan="4" class="empty">Tick at least one school.</td></tr>`;
+  $("tSch").innerHTML = st;
+
+  // census
+  const est = (k) => acs.m[k].map((v) => (v ? v.est : null));
+  line("cPop", acs.years, [{ label: "Ages 12–14", data: est("age_12_14") }, { label: "Ages 15–17", data: est("age_15_17") }]);
+  const cols = ["age_9_11", "age_12_14", "age_15_17", "age_12_17", "age_18_19", "under_18", "total_pop"];
+  let pt = "<tr><th>5 years ending</th>" + cols.map((c) => `<th>${D.metrics[c].label}</th>`).join("") + "</tr>";
+  for (let i = acs.years.length - 1; i >= 0; i--) pt += `<tr><td>${acs.years[i]}</td>` + cols.map((c) => { const v = acs.m[c][i]; return `<td>${v ? fmt(v.est) + (v.moe != null ? ` <span class="small">±${fmt(v.moe)}</span>` : "") : "–"}</td>`; }).join("") + "</tr>";
+  $("tPop").innerHTML = pt;
+  line("cRace", acs.years, ["white_nh_10_17", "asian_10_17", "hispanic_10_17", "black_10_17"].map((k) => ({ label: D.metrics[k].label, data: est(k) })));
+  line("cSex", acs.years, [{ label: "Boys", data: est("male_10_17") }, { label: "Girls", data: est("female_10_17") }]);
+  const p = pipeline() || [];
+  line("cPipe", p.map((r) => r.year), [{ label: "Ages 12–14", data: p.map((r) => r.ms) }, { label: "Ages 15–17", data: p.map((r) => r.hs) }]);
+}
+
+function renderProfile() {
+  const p = D.profile, pc = (n) => (n == null ? "–" : fmt(n) + "%");
+  $("profSub").textContent = `Census survey, ${p.year - 4}–${p.year}. One row per area; these do not change with your selections.`;
+  let h = `<tr><th>Area</th><th>Population</th><th>Teens 12–17</th><th>Teen share</th><th>Median household income</th><th>Households with children</th><th>White</th><th>Asian</th><th>Hispanic</th><th>Black</th><th>Ages 5–17, other language at home</th><th>Foreign born</th><th>Homeowners</th></tr>`;
+  for (const r of p.rows) h += `<tr><td>${esc(r.name)}</td><td>${fmt(r.population)}</td><td>${fmt(r.teens_12_17)}</td><td>${r.teen_share == null ? "–" : fmt(r.teen_share, 1) + "%"}</td><td>${r.median_income == null ? "–" : "$" + fmt(r.median_income)}</td><td>${pc(r.hh_with_children)}</td><td>${pc(r.white_nh)}</td><td>${pc(r.asian_nh)}</td><td>${pc(r.hispanic)}</td><td>${pc(r.black_nh)}</td><td>${pc(r.other_language_5_17)}</td><td>${pc(r.foreign_born)}</td><td>${pc(r.owner_occupied)}</td></tr>`;
+  $("tProf").innerHTML = h;
+  $("sources").textContent = `Sources: NCES Common Core of Data (via the Urban Institute Education Data API); U.S. Census Bureau American Community Survey 5-year estimates and 2020 Census. Data pulled ${D.built}.`;
+}
+
+function buildControls() {
+  $("zips").innerHTML = ZIPS.map((g) => `<label class="chip" title="${esc(g.name)}"><input type="checkbox" id="z-${g.id.slice(5)}" value="${g.id}" ${S.zips.has(g.id) ? "checked" : ""}>${esc(g.name.slice(0, 5))} <span class="small">${esc(g.name.slice(6))}</span></label>`).join("");
+  let h = "", dist = null;
+  for (const s of D.schools) {
+    if (s.district !== dist) { if (dist) h += "</div></div>"; dist = s.district; h += `<div><h3>${esc(dist)}</h3><div class="chips">`; }
+    h += `<label class="chip"><input type="checkbox" id="s-${s.id}" value="${s.id}" ${S.schools.has(s.id) ? "checked" : ""}>${esc(s.name)} <span class="small">${s.lvl} · ${esc(s.zip)}</span></label>`;
+  }
+  $("schools").innerHTML = h + "</div></div>";
+}
+function setSchools(ids) {
+  S.schools = new Set(ids); store.set("schools", [...S.schools]);
+  document.querySelectorAll("#schools input").forEach((i) => { i.checked = S.schools.has(i.value); });
+  render();
+}
+
+/* ---------- saving ---------- */
+function setSaveState(msg) { $("saveState").textContent = msg; }
+async function persistRows() {
+  store.set("rows", example ? [] : S.rows);
+  if (!cloudDoc) return setSaveState(example ? "" : "Saved in this browser only.");
+  try { await cloudDoc.set({ rows: example ? [] : S.rows }); setSaveState(example ? "" : "Saved to your Claude account. Only you can see these numbers."); }
+  catch { setSaveState("Could not save to your account; kept in this browser."); }
+}
+async function connectCloud() {
+  if (!window.claude?.use) return;
+  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+  const id = db && user ? await user.id() : null;
+  if (!id) { if (!example) setSaveState("Saved in this browser only."); return; }
+  const doc = db.collection("data/users/" + id).doc("youth");
+  const snap = await Promise.race([doc.get(), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000))]);
+  cloudDoc = doc;
+  const remote = snap.exists ? snap.data()?.rows : null;
+  if (Array.isArray(remote) && remote.length) { S.rows = remote; example = false; store.set("rows", S.rows); setSaveState("Loaded from your Claude account. Only you can see these numbers."); render(); }
+  else if (!example) persistRows();
+}
+
+/* ---------- events ---------- */
+$("yform").addEventListener("submit", (e) => {
+  e.preventDefault();
+  $("err").textContent = "";
+  const year = parseInt($("f-year").value, 10), num = (v) => (v === "" ? null : Number(v));
+  const ms = num($("f-ms").value), hs = num($("f-hs").value);
+  if (!(year >= 1990 && year <= 2100)) return ($("err").textContent = "Enter a four-digit year, such as 2025.");
+  if (ms == null && hs == null) return ($("err").textContent = "Enter a middle school count, a high school count, or both.");
+  if ((ms != null && !(ms >= 0)) || (hs != null && !(hs >= 0))) return ($("err").textContent = "Counts must be zero or more.");
+  if (example) { S.rows = []; example = false; }
+  S.rows = S.rows.filter((r) => r.year !== year).concat({ year, ms, hs, note: $("f-note").value.trim().slice(0, 120) });
+  e.target.reset(); persistRows(); render(); $("f-year").focus();
+});
+$("tYouth").addEventListener("click", (e) => {
+  const y = e.target.closest("[data-del]")?.dataset.del;
+  if (!y) return;
+  S.rows = S.rows.filter((r) => String(r.year) !== y);
+  if (example && !S.rows.length) example = false;
+  persistRows(); render();
+});
+$("clearExample").addEventListener("click", () => { S.rows = []; example = false; persistRows(); render(); });
+document.querySelector(".seg").addEventListener("click", (e) => { const b = e.target.closest("[data-basis]"); if (b) { S.basis = b.dataset.basis; store.set("basis", S.basis); render(); } });
+$("zips").addEventListener("change", () => { S.zips = new Set([...document.querySelectorAll("#zips input:checked")].map((i) => i.value)); store.set("zips", [...S.zips]); render(); });
+$("schools").addEventListener("change", () => setSchools([...document.querySelectorAll("#schools input:checked")].map((i) => i.value)));
+$("zipSchools").addEventListener("click", () => { const z = new Set([...S.zips].map((g) => g.slice(5))); setSchools(D.schools.filter((s) => z.has(s.zip)).map((s) => s.id)); });
+document.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => {
+  const k = b.dataset.pick;
+  setSchools(D.schools.filter((s) => k === "all" || (k === "default" && s.def) || (s.lvl === k && S.schools.has(s.id))).map((s) => s.id));
+}));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+buildControls(); renderProfile(); render();
+connectCloud().catch(() => { if (!example) setSaveState("Saved in this browser only."); });
+</script>

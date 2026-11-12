@@ -44,3 +44,9 @@ then run `fetch` again. Schools are also ticked on and off in the dashboard.
 
 Data lives in `data/` (SQLite database plus a download cache). Tests:
 `python3 -m unittest discover -s tests`
+
+## Standalone web page
+
+`python3 web/build_page.py` bakes the downloaded data into one self-contained
+page, `web/dist/youth-yardstick.html`, with school and ZIP code pickers and
+manual entry of youth-group counts.
