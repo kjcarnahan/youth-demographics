@@ -190,7 +190,7 @@ def profile(conn):
         if v.get("B09001_008") is not None and v.get("B09001_009") is not None:
             teens = v["B09001_008"] + v["B09001_009"]
         pop = v.get("B01001_001")
-        eng = pct("C16007_003", "C16007_002")
+        eng = pct("B16007_003", "B16007_002")
         rows.append({
             "id": g["id"], "kind": g["kind"], "name": g["name"],
             "population": pop,

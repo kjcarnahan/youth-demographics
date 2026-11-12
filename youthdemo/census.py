@@ -48,7 +48,7 @@ PROFILE_VARS = [
     "B19013_001",                # median household income
     "B11005_001", "B11005_002",  # households; households with children <18
     "B03002_001", "B03002_003", "B03002_004", "B03002_006", "B03002_012",
-    "C16007_002", "C16007_003",  # age 5-17; of those, speak only English
+    "B16007_002", "B16007_003",  # age 5-17; of those, speak only English
     "B25003_001", "B25003_002",  # occupied homes; owner-occupied
     "B05002_001", "B05002_013",  # population; foreign born
 ]
