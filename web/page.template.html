@@ -417,7 +417,7 @@ document.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("clic
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-$("areaName").textContent = D.area; document.title = "Youth Group Yardstick";
+$("areaName").textContent = D.area;
 buildControls(); renderProfile(); render();
 connectCloud().catch(() => { if (!example) setSaveState("Saved in this browser only."); });
 </script>

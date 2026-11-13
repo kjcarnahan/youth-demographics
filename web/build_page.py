@@ -49,7 +49,11 @@ def main():
     blob = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "dist", "youth-yardstick.html")
     with open(out, "w") as f:
-        f.write(html.replace("/*__DATA__*/null", blob))
+        html = html.replace("/*__DATA__*/null", blob)
+        if cfg.get("area_name"):  # pages for other areas get their own name
+            html = html.replace("<title>Youth Group Yardstick</title>",
+                                f"<title>{cfg['area_name']} Youth Yardstick</title>", 1)
+        f.write(html)
     print(out, f"{os.path.getsize(out) // 1024} KB")
 
 
