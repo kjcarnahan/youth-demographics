@@ -2,7 +2,7 @@ import argparse
 import csv
 import sys
 
-from . import analysis, census, db, schools, server
+from . import analysis, areas, census, db, schools, server
 
 
 def main(argv=None):
@@ -15,7 +15,20 @@ def main(argv=None):
                        "(columns: year, middle_school, high_school, note)")
     i.add_argument("csv")
     sub.add_parser("export-youth", help="print youth-group counts and comparison as CSV")
+    ar = sub.add_parser("area", help="download data for any U.S. area from a list of ZIP codes")
+    ar.add_argument("name", help='e.g. "South Atlanta"')
+    ar.add_argument("--state", required=True, help="two-letter state code, e.g. GA")
+    ar.add_argument("--zips", required=True, help="comma-separated five-digit ZIP codes")
+    ar.add_argument("--radius", type=float, default=3.0,
+                    help="also list schools within this many miles of the ZIP codes (default 3)")
+    ar.add_argument("--setup-only", action="store_true", help="choose schools but do not download")
     a = p.parse_args(argv)
+    if a.cmd == "area":
+        try:
+            areas.run(a.name, a.state, areas.parse_zips(a.zips), a.radius, fetch=not a.setup_only)
+        except (ValueError, schools.SchoolDataError) as e:
+            sys.exit(f"Area setup failed: {e}")
+        return
 
     if a.cmd == "serve":
         return server.serve(a.port)

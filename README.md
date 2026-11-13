@@ -50,3 +50,16 @@ Data lives in `data/` (SQLite database plus a download cache). Tests:
 `python3 web/build_page.py` bakes the downloaded data into one self-contained
 page, `web/dist/youth-yardstick.html`, with school and ZIP code pickers and
 manual entry of youth-group counts.
+
+## Any area in the U.S.
+
+Give a name, a state and the ZIP codes around a church:
+
+    export CENSUS_API_KEY=yourkey
+    python3 -m youthdemo area "East Denver" --state CO --zips 80207,80220,80238,80239 --radius 3
+
+This lists every public middle and high school located in those ZIP codes or
+within `--radius` miles of them (including schools that have since closed),
+downloads their enrollment and the Census data for the ZIP codes, and builds a
+page at `data/areas/<name>/<name>.html`. Add `--setup-only` to see which
+schools it would use without downloading.

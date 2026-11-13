@@ -5,7 +5,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from youthdemo import analysis, census, db, server  # noqa: E402
+from youthdemo import analysis, areas, census, db, server  # noqa: E402
 
 
 def conn_with(acs=(), ages=(), youth=()):
@@ -123,6 +123,54 @@ class Analysis(unittest.TestCase):
             server.save_youth(c, {"year": "2024", "ms": "-3"})
         server.save_youth(c, {"year": "2024", "ms": "12", "hs": ""})
         self.assertEqual(analysis.youth_rows(c)[0]["ms"], 12)
+
+
+class Areas(unittest.TestCase):
+    def test_inputs(self):
+        self.assertEqual(areas.state_fips("co"), "08")
+        self.assertEqual(areas.state_fips("13"), "13")
+        with self.assertRaises(ValueError):
+            areas.state_fips("ZZ")
+        self.assertEqual(areas.parse_zips("30315, 30310 30315"), ["30315", "30310"])
+        with self.assertRaises(ValueError):
+            areas.parse_zips("3031")
+        self.assertEqual(areas.slug("East Denver!"), "east-denver")
+
+    def test_distance(self):
+        # Atlanta to Denver is about 1,200 miles.
+        self.assertAlmostEqual(areas.miles((33.75, -84.39), (39.74, -104.99)), 1210, delta=30)
+        self.assertEqual(areas.miles((33, -84), (33, -84)), 0)
+
+    def test_choose_schools(self):
+        def sch(i, zip_, lat, lon, hi=8):
+            return {"ncessch": i, "zip_location": zip_, "latitude": lat, "longitude": lon,
+                    "highest_grade_offered": hi, "leaid": "L", "lea_name": "N", "school_name": i}
+        d = [sch("in", "30315", 33.70, -84.38), sch("near", "30000", 33.72, -84.40),
+             sch("far", "30000", 34.50, -84.40), sch("elem", "30315", 33.7, -84.38, hi=5),
+             sch("nocoord", "30000", None, None)]
+        got = {r["ncessch"]: m for r, m in areas.choose_schools(d, ["30315"], [(33.70, -84.38)], 3)}
+        self.assertEqual(set(got), {"in", "near"})
+        self.assertEqual(set(r["ncessch"] for r, _ in areas.choose_schools(d, ["30315"], [(33.70, -84.38)], 0)), {"in"})
+
+    def test_closed_schools_are_kept(self):
+        def sch(i, name, zip_="80220", leaid="803360"):
+            return {"ncessch": i, "zip_location": zip_, "latitude": 39.7, "longitude": -104.9,
+                    "highest_grade_offered": 8, "leaid": leaid, "lea_name": "DPS", "school_name": name}
+        old = [sch("080336000001", "Closed Middle"), sch("80336000002", "Renamed Old")]
+        new = [sch("080336000002", "Renamed New", leaid="0803360")]
+        got = areas.pick_over_years([old, new], ["80220"], [(39.73, -104.92)], 3)
+        self.assertEqual(sorted(got), ["080336000001", "080336000002"])
+        self.assertEqual(got["080336000002"][0]["school_name"], "Renamed New")
+
+    def test_build_config(self):
+        d = [{"ncessch": "080336000001", "zip_location": "80220", "latitude": 39.7, "longitude": -104.9,
+              "highest_grade_offered": 12, "leaid": "0803360", "lea_name": "DPS",
+              "school_name": "A High", "city_location": "Denver"}]
+        cfg = areas.build_config("East Denver", "CO", ["80220", "99999"],
+                                 3, gaz={"80220": (39.73, -104.92)}, directories=[d])
+        self.assertEqual(cfg["zctas"], {"80220": "80220 Denver"})
+        self.assertEqual(cfg["state_fips"], "08")
+        self.assertEqual(cfg["school_ids"], {"080336000001": "A High"})
 
 
 if __name__ == "__main__":

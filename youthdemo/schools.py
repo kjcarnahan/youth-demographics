@@ -46,38 +46,51 @@ def fetch_all(path, use_cache=True):
     return rows
 
 
+def latest_directory(state):
+    """-> (year, rows) for the newest school directory published for a state."""
+    for y in range(datetime.date.today().year, 2014, -1):
+        rows = fetch_all(f"directory/{y}/?fips={state}")
+        if rows:
+            return y, rows
+    raise SchoolDataError("No school directory found")
+
+
 def refresh(conn, cfg, log=lambda m: print(m, file=sys.stderr)):
     districts = cfg.get("school_districts", {})
     if not districts:
         return
-    state = int(cfg["state_fips"])
-    latest, directory = None, []
-    for y in range(datetime.date.today().year, 2014, -1):
-        directory = fetch_all(f"directory/{y}/?fips={state}")
-        if directory:
-            latest = y
-            break
-    if latest is None:
-        raise SchoolDataError("No school directory found")
+    latest, directory = latest_directory(int(cfg["state_fips"]))
     log(f"Latest school directory: {latest}-{(latest + 1) % 100:02d}")
     names = {}
-    for r in directory:
-        if r.get("leaid") in districts and (r.get("highest_grade_offered") or -1) >= 6:
-            names[r["ncessch"]] = r
+    if cfg.get("school_info"):
+        # An area set up from ZIP codes lists every school seen in any year.
+        for sid, m in cfg["school_info"].items():
+            names[sid] = m
             conn.execute("INSERT OR REPLACE INTO school VALUES (?,?,?,?,?)",
-                         (r["ncessch"], r["school_name"], r.get("zip_location"),
-                          r.get("city_location"), r["leaid"]))
+                         (sid, m["name"], m.get("zip"), m.get("city"), m["leaid"]))
+    else:
+        for r in directory:
+            if r.get("leaid") in districts and (r.get("highest_grade_offered") or -1) >= 6:
+                names[r["ncessch"]] = r
+                conn.execute("INSERT OR REPLACE INTO school VALUES (?,?,?,?,?)",
+                             (r["ncessch"], r["school_name"], r.get("zip_location"),
+                              r.get("city_location"), r["leaid"]))
     first = cfg.get("first_school_year", 2010)
     for year in range(first, latest + 1):
         n = 0
         for leaid in districts:
             for grade in GRADES:
-                for r in fetch_all(f"enrollment/{year}/grade-{grade}/?leaid={leaid}"):
+                q = f"enrollment/{year}/grade-{grade}/?leaid="
+                found = fetch_all(q + leaid)
+                if not found and leaid.startswith("0"):
+                    # Older years store district ids without the leading zero.
+                    found = fetch_all(q + leaid.lstrip("0"))
+                for r in found:
                     e = r.get("enrollment")
-                    if r.get("ncessch") in names and r.get("race") == 99 and r.get("sex") == 99 \
+                    if str(r.get("ncessch")).zfill(12) in names and r.get("race") == 99 and r.get("sex") == 99 \
                             and e is not None and e >= 0:
                         conn.execute("INSERT OR REPLACE INTO school_enr VALUES (?,?,?,?)",
-                                     (r["ncessch"], year, grade, e))
+                                     (str(r["ncessch"]).zfill(12), year, grade, e))
                         n += 1
         conn.commit()
         log(f"School enrollment {year}-{(year + 1) % 100:02d}: {n} school-grade counts")

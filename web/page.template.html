@@ -82,7 +82,7 @@ details[open] > summary { margin-bottom: 8px; }
 <main>
   <header>
     <h1>Youth Group Yardstick</h1>
-    <p class="lede">Is your youth group growing, or is the neighborhood? Enter your attendance by year and compare it with the number of teens actually living and going to school in South Forsyth and Johns Creek.</p>
+    <p class="lede">Is your youth group growing, or is the neighborhood? Enter your attendance by year and compare it with the number of teens actually living and going to school in <span id="areaName"></span>.</p>
   </header>
 
   <section class="panel" aria-labelledby="h-you">
@@ -171,10 +171,10 @@ details[open] > summary { margin-bottom: 8px; }
   <section class="panel">
     <h2>Reading these numbers</h2>
     <ul class="notes">
-      <li>School enrollment is a real count taken every fall, so it is the steadier yardstick. It moves when schools open or attendance zones are redrawn: Denmark High opened in 2018 and East Forsyth High in 2021.</li>
+      <li>School enrollment is a real count taken every fall, so it is the steadier yardstick. It moves when schools open, close or have their attendance zones redrawn.</li>
       <li>Census figures are survey estimates averaged over five years. Compare points five years apart for a clean read; neighboring years share four years of data.</li>
       <li>For a single ZIP code the margin of error on a teen age band is often 10% or more. Small wiggles are noise.</li>
-      <li>Census ZIP areas follow ZIP boundaries, not county lines. 30024 and 30097 include parts of Gwinnett County.</li>
+      <li>Census ZIP areas follow ZIP boundaries, which can cross city and county lines.</li>
       <li>Ages 12–14 and 15–17 stand in for middle and high school. Many sixth graders are 11 and many seniors are 18.</li>
       <li>When your year is newer than the latest published data, the latest available figure is used and marked with an asterisk.</li>
     </ul>
@@ -354,7 +354,7 @@ function buildControls() {
   let h = "", dist = null;
   for (const s of D.schools) {
     if (s.district !== dist) { if (dist) h += "</div></div>"; dist = s.district; h += `<div><h3>${esc(dist)}</h3><div class="chips">`; }
-    h += `<label class="chip"><input type="checkbox" id="s-${s.id}" value="${s.id}" ${S.schools.has(s.id) ? "checked" : ""}>${esc(s.name)} <span class="small">${s.lvl} · ${esc(s.zip)}</span></label>`;
+    h += `<label class="chip"><input type="checkbox" id="s-${s.id}" value="${s.id}" ${S.schools.has(s.id) ? "checked" : ""}>${esc(s.name)} <span class="small">${s.lvl} · ${esc(s.zip)}${s.mi != null && !S.zips.has("zcta:" + s.zip) ? ` · ${s.mi} mi` : ""}${s.last < D.maxYear ? ` · until ${s.last}` : ""}</span></label>`;
   }
   $("schools").innerHTML = h + "</div></div>";
 }
@@ -417,6 +417,7 @@ document.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("clic
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
+$("areaName").textContent = D.area; document.title = "Youth Group Yardstick";
 buildControls(); renderProfile(); render();
 connectCloud().catch(() => { if (!example) setSaveState("Saved in this browser only."); });
 </script>

@@ -5,7 +5,7 @@ import sqlite3
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.environ.get("YOUTHDEMO_DATA", os.path.join(ROOT, "data"))
 DB_PATH = os.path.join(DATA_DIR, "youthdemo.sqlite")
-CONFIG_PATH = os.path.join(ROOT, "config.json")
+CONFIG_PATH = os.environ.get("YOUTHDEMO_CONFIG", os.path.join(ROOT, "config.json"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS geo (
